@@ -2,8 +2,8 @@
 
 #region ######## Parameters ################################
 param(
-    [string]$PathToTemplate = "$PSScriptRoot\BrickTemplates\vnet.json",
-    [string]$PathToParameters = "$PSScriptRoot\BrickTemplates\vnet.parameters.json"
+    [string]$PathToTemplate = "$PSScriptRoot\genericTemplate.json",
+    [string]$PathToParameters = "$PSScriptRoot\genericTemplate.parameters.json"
 )
 
 #region ######## Variables ################################# 
@@ -31,11 +31,10 @@ Select-AzureRmSubscription -SubscriptionName $subscriptionName
 #region ######## Workflow ##################################
 
 Write-Host "$PathToTemplate"
-New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
-Test-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
-        -TemplateFile $PathToTemplate `
-        -TemplateParameterFile $PathToParameters
 
+if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyContinue)) {
+    New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
+}
 
 New-AzureRmResourceGroupDeployment -Name $deploymentName `
         -ResourceGroupName $resourceGroupName `
