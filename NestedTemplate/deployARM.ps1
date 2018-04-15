@@ -2,8 +2,8 @@
 
 #region ######## Parameters ################################
 param(
-    [string]$PathToTemplate = "$PSScriptRoot\BrickTemplates\storageAccount.json",
-    [string]$PathToParameters = "$PSScriptRoot\BrickTemplates\storageAccount.parameters.json"
+    [string]$PathToTemplate = "$PSScriptRoot\BrickTemplates\vnet.json",
+    [string]$PathToParameters = "$PSScriptRoot\BrickTemplates\vnet.parameters.json"
 )
 
 #region ######## Variables ################################# 
@@ -41,5 +41,5 @@ New-AzureRmResourceGroupDeployment -Name $deploymentName `
         -ResourceGroupName $resourceGroupName `
         -TemplateFile $PathToTemplate  `
         -TemplateParameterFile $PathToParameters
-        
+
 #endregion
