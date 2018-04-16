@@ -30,8 +30,6 @@ Select-AzureRmSubscription -SubscriptionName $subscriptionName
 
 #region ######## Workflow ##################################
 
-Write-Host "$PathToTemplate"
-
 if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyContinue)) {
     New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
 }
