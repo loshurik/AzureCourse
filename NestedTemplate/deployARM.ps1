@@ -38,7 +38,7 @@ if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyConti
 
 New-AzureRmResourceGroupDeployment -Name $deploymentName `
         -ResourceGroupName $resourceGroupName `
-        -TemplateFile $PathToTemplate  `
+        -TemplateFile $PathToTemplate `
         -TemplateParameterFile $PathToParameters
 
 #endregion

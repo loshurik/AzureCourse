@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "storageAccountType": {
+        "type": "string",
+        "defaultValue": "Standard_LRS",
+        "allowedValues": [
+          "Standard_LRS",
+          "Standard_GRS",
+          "Standard_ZRS",
+          "Premium_LRS"
+        ],
+        "metadata": {
+          "description": "Storage Account type"
+        }
+      }
+    },
+    "variables": {
+        "nestedTemplateUri":"https://github.com/loshurik/AzureCourse/blob/master/NestedTemplate/BrickTemplates/"
+    },
+    "resources": [
+        {
+            "name":"Storage",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "dependsOn": [],
+            "properties": {
+                "mode":"Incremental",
+                "templateLink":{
+                    "uri": "[concat(variables('nestedTemplateUri'),'storageAccount.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {"storageAccountType": {
+                    "value": "[parameters('storageAccountType')]"
+                  }
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+  }
