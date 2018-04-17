@@ -4,7 +4,7 @@
     "parameters": {
       "vnetName": {
         "type": "string",
-        "defaultValue": "VNet1",
+        "defaultValue": "MyVNet",
         "metadata": {
           "description": "VNet name"
         }
@@ -20,28 +20,28 @@
         "type": "string",
         "defaultValue": "10.0.0.0/24",
         "metadata": {
-          "description": "Subnet 1 Prefix"
+          "description": "FrontEnd Subnet Prefix"
         }
       },
       "subnet1Name": {
         "type": "string",
-        "defaultValue": "Subnet1",
+        "defaultValue": "FrontEnd",
         "metadata": {
-          "description": "Subnet 1 Name"
+          "description": "FrontEnd Subnet Name"
         }
       },
       "subnet2Prefix": {
         "type": "string",
         "defaultValue": "10.0.1.0/24",
         "metadata": {
-          "description": "Subnet 2 Prefix"
+          "description": "BackEnd Subnet Prefix"
         }
       },
       "subnet2Name": {
         "type": "string",
-        "defaultValue": "Subnet2",
+        "defaultValue": "BackEnd",
         "metadata": {
-          "description": "Subnet 2 Name"
+          "description": "BackEnd Subnet Name"
         }
       }
     },
