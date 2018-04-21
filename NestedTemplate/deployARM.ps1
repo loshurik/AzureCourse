@@ -2,16 +2,17 @@
 
 #region ######## Parameters ################################
 param(
-    [string]$PathToTemplate = "$PSScriptRoot\genericTemplate.json",
-    [string]$PathToParameters = "$PSScriptRoot\genericTemplate.parameters.json"
+    [string]$PathToTemplate = "$PSScriptRoot\keyvault.json",
+    [string]$PathToParameters = "$PSScriptRoot\keyvault.parameters.json"
 )
 
 #region ######## Variables ################################# 
 
 $subscriptionName = "Free Trial"
-$resourceGroupName = "HomeTask3"
-$deploymentName = "HomeTask3Deployment"
+$resourceGroupName = "HomeTask47"
+$deploymentName = "HomeTask4Deployment"
 $location = "South Central US"
+$password = "testKv"
 
 #endregion
 
@@ -34,9 +35,27 @@ if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyConti
     New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
 }
 
+#region ######## KeyVault deployment #######################
+
+$currentTenantId = (Get-AzureRmContext).Tenant.Id
+$accessPolicies = New-Object System.Collections.ArrayList
+
+# add all existing AD users to key vault users (for test purposes it's ok, we have less than 16 users)
+foreach ($userToAdd in (Get-AzureRmADUser).id) {
+    $accessPolicies.Add(@{"tenantId" = $currentTenantId; 
+                            "objectId" = $userToAdd;
+                             "permissions" =  @{"keys" = @("all"); "secrets" = @("all")};
+                        })
+}
+
+# deploy the keyvault
 New-AzureRmResourceGroupDeployment -Name $deploymentName `
         -ResourceGroupName $resourceGroupName `
         -TemplateFile $PathToTemplate `
-        -TemplateParameterFile $PathToParameters
+        -TemplateParameterFile $PathToParameters `
+        -tenantId $currentTenantId `
+        -accessPolicies $accessPolicies
+
+#endregion
 
 #endregion
