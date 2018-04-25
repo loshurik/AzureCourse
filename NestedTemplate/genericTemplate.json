@@ -2,77 +2,89 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "storageAccountType": {
-        "type": "string",
-        "defaultValue": "Standard_LRS",
-        "allowedValues": [
-          "Standard_LRS",
-          "Standard_GRS",
-          "Standard_ZRS",
-          "Premium_LRS"
-        ],
-        "metadata": {
-          "description": "Storage Account type"
+        "storageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_ZRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "Storage Account type"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "MyVNet",
+            "metadata": {
+                "description": "VNet name"
+            }
+        },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16",
+            "metadata": {
+                "description": "Address prefix"
+            }
+        },
+        "subnet1Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24",
+            "metadata": {
+                "description": "FrontEnd Subnet Prefix"
+            }
+        },
+        "subnet1Name": {
+            "type": "string",
+            "defaultValue": "FrontEnd",
+            "metadata": {
+                "description": "FrontEnd Subnet Name"
+            }
+        },
+        "subnet2Prefix": {
+            "type": "string",
+            "defaultValue": "10.0.1.0/24",
+            "metadata": {
+                "description": "BackEnd Subnet Prefix"
+            }
+        },
+        "subnet2Name": {
+            "type": "string",
+            "defaultValue": "BackEnd",
+            "metadata": {
+                "description": "BackEnd Subnet Name"
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username for the Virtual Machine."
+            }
+        },
+        "dnsLabelPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+            }
         }
-      },
-      "vnetName": {
-        "type": "string",
-        "defaultValue": "MyVNet",
-        "metadata": {
-          "description": "VNet name"
-        }
-      },
-      "vnetAddressPrefix": {
-        "type": "string",
-        "defaultValue": "10.0.0.0/16",
-        "metadata": {
-          "description": "Address prefix"
-        }
-      },
-      "subnet1Prefix": {
-        "type": "string",
-        "defaultValue": "10.0.0.0/24",
-        "metadata": {
-          "description": "FrontEnd Subnet Prefix"
-        }
-      },
-      "subnet1Name": {
-        "type": "string",
-        "defaultValue": "FrontEnd",
-        "metadata": {
-          "description": "FrontEnd Subnet Name"
-        }
-      },
-      "subnet2Prefix": {
-        "type": "string",
-        "defaultValue": "10.0.1.0/24",
-        "metadata": {
-          "description": "BackEnd Subnet Prefix"
-        }
-      },
-      "subnet2Name": {
-        "type": "string",
-        "defaultValue": "BackEnd",
-        "metadata": {
-          "description": "BackEnd Subnet Name"
-        }
-      }
     },
     "variables": {
-        "nestedTemplateUri":"https://raw.githubusercontent.com/loshurik/AzureCourse/master/NestedTemplate/BrickTemplates/",
+        "nestedTemplateUri": "https://raw.githubusercontent.com/loshurik/AzureCourse/master/NestedTemplate/BrickTemplates/",
         "nicName": "myNic",
         "publicIPAddressName": "PublicIP",
         "vmName": "MyVM"
     },
     "resources": [
         {
-            "name":"Storage",
+            "name": "Storage",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2015-01-01",
             "dependsOn": [],
             "properties": {
-                "mode":"Incremental",
-                "templateLink":{
+                "mode": "Incremental",
+                "templateLink": {
                     "uri": "[concat(variables('nestedTemplateUri'),'storageAccount.json')]",
                     "contentVersion": "1.0.0.0"
                 },
@@ -84,13 +96,13 @@
             }
         },
         {
-            "name":"Network",
+            "name": "Network",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2015-01-01",
             "dependsOn": [],
             "properties": {
-                "mode":"Incremental",
-                "templateLink":{
+                "mode": "Incremental",
+                "templateLink": {
                     "uri": "[concat(variables('nestedTemplateUri'),'vnet.json')]",
                     "contentVersion": "1.0.0.0"
                 },
@@ -117,83 +129,37 @@
             }
         },
         {
-            "apiVersion": "2016-03-30",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('nicName')]",
-            "location": "[resourceGroup().location]",
+            "name": "VM",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
             "dependsOn": [
-              "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-              "[resourceId('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+                "Storage",
+                "Network"
             ],
             "properties": {
-              "ipConfigurations": [
-                {
-                  "name": "ipconfig1",
-                  "properties": {
-                    "privateIPAllocationMethod": "Dynamic",
-                    "publicIPAddress": {
-                      "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('nestedTemplateUri'),'virtualMachine.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
                     },
-                    "subnet": {
-                      "id": "[variables('subnetRef')]"
-                    }
-                  }
+                    "adminPassword": {
+                        "value": {
+                            "reference": {
+                                "keyVault": {
+                                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourcegroup().id,'/providers/Microsoft.KeyVault/vaults/StaticKV')]"
+                                },
+                                "secretName": "vmpassword"
+                            }
+                        }
+                    },
+                    "dnsLabelPrefix": "[parameters('dnsLabelPrefix')]"
                 }
-              ]
-            }
-          },
-          {
-            "apiVersion": "2017-03-30",
-            "type": "Microsoft.Compute/virtualMachines",
-            "name": "[variables('vmName')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-              "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-              "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
-            ],
-            "properties": {
-              "hardwareProfile": {
-                "vmSize": "Standard_A2"
-              },
-              "osProfile": {
-                "computerName": "[variables('vmName')]",
-                "adminUsername": "[parameters('adminUsername')]",
-                "adminPassword": "[parameters('adminPassword')]"
-              },
-              "storageProfile": {
-                "imageReference": {
-                  "publisher": "MicrosoftWindowsServer",
-                  "offer": "WindowsServer",
-                  "sku": "[parameters('windowsOSVersion')]",
-                  "version": "latest"
-                },
-                "osDisk": {
-                  "createOption": "FromImage"
-                },
-                "dataDisks": [
-                  {
-                    "diskSizeGB": 1023,
-                    "lun": 0,
-                    "createOption": "Empty"
-                  }
-                ]
-              },
-              "networkProfile": {
-                "networkInterfaces": [
-                  {
-                    "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
-                  }
-                ]
-              },
-              "diagnosticsProfile": {
-                "bootDiagnostics": {
-                  "enabled": true,
-                  "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob]"
-                }
-              }
             }
         }
-    ],
-    "outputs": {
+        ],
+        "outputs": {}
     }
-  }

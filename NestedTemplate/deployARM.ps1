@@ -13,7 +13,7 @@ $resourceGroupName = "HomeTask48"
 $deploymentName = "HomeTask4Deployment"
 $location = "South Central US"
 $dscContainerName = "DSCExtension"
-$password = "testKv"
+$keyVaultName = "StaticKV"
 
 #endregion
 
@@ -35,7 +35,7 @@ Select-AzureRmSubscription -SubscriptionName $subscriptionName
 if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyContinue)) {
     New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
 }
-<#
+
 #region ######## Key Vault deployment ######################
 
 $currentTenantId = (Get-AzureRmContext).Tenant.Id
@@ -54,11 +54,23 @@ New-AzureRmResourceGroupDeployment -Name $deploymentName `
         -ResourceGroupName $resourceGroupName `
         -TemplateFile $PathToTemplate `
         -TemplateParameterFile $PathToParameters `
+        -keyVaultName $keyVaultName `
         -tenantId $currentTenantId `
         -accessPolicies $accessPolicies
 
-#endregion
-#>
+# take care of password
+do {
+        $password = (Get-Random -Count 10 -InputObject ([char[]]"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")) -join ''
+}
+# make sure the password has at least 1 digit, capital and small letter
+until (($password -match "\d") -and ($password -cmatch "[A-Z]") -and ($password -cmatch "[a-z]")) 
+$securedPassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+$passwordExists = Get-AzureKeyVaultSecret -VaultName $KeyVaultName -name "vmPassword" -ErrorAction SilentlyContinue
+if (-not $passwordExists){
+        [void](Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name "vmPassword" -SecretValue $securedPassword)
+}
+
+<#
 #region ######## Storage Account deployment ################ 
 
 New-AzureRmResourceGroupDeployment -Name ($deploymentName) `
@@ -100,4 +112,5 @@ Publish-AzureRmVMDscConfiguration  `
 
 #endregion
 
+#>
 #endregion

@@ -1,27 +1,36 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "storageAccountType": {
-        "value": "Standard_GRS"
-      },
-      "vnetName": {
-        "value": "MyVNet"
-      },
-      "vnetAddressPrefix": {
-        "value": "10.0.0.0/16"
-      },
-      "subnet1Name": {
-        "value": "FrontEnd"
-      },
-      "subnet1Prefix": {
-        "value": "10.0.0.0/24"
-      },
-      "subnet2Name": {
-        "value": "BackEnd"
-      },
-      "subnet2Prefix": {
-        "value": "10.0.1.0/24"
-      }
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountType": {
+      "value": "Standard_GRS"
+    },
+    "vnetName": {
+      "value": "MyVNet"
+    },
+    "vnetAddressPrefix": {
+      "value": "10.0.0.0/16"
+    },
+    "subnet1Name": {
+      "value": "FrontEnd"
+    },
+    "subnet1Prefix": {
+      "value": "10.0.0.0/24"
+    },
+    "subnet2Name": {
+      "value": "BackEnd"
+    },
+    "subnet2Prefix": {
+      "value": "10.0.1.0/24"
+    },
+    "adminUsername": {
+      "value": "epamazureuser"
+    },
+    "dnsLabelPrefix": {
+      "value": "epamazurevm"
+    },
+    "vmName": {
+      "value": "epamazurevm"
     }
+  }
 }
