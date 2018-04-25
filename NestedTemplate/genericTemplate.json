@@ -68,13 +68,16 @@
             "metadata": {
                 "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
             }
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual Machine name"
+            }
         }
     },
     "variables": {
-        "nestedTemplateUri": "https://raw.githubusercontent.com/loshurik/AzureCourse/master/NestedTemplate/BrickTemplates/",
-        "nicName": "myNic",
-        "publicIPAddressName": "PublicIP",
-        "vmName": "MyVM"
+        "nestedTemplateUri": "https://raw.githubusercontent.com/loshurik/AzureCourse/master/NestedTemplate/BrickTemplates/"
     },
     "resources": [
         {
@@ -156,10 +159,21 @@
                             }
                         }
                     },
-                    "dnsLabelPrefix": "[parameters('dnsLabelPrefix')]"
+                    "dnsLabelPrefix": {
+                        "value": "[parameters('dnsLabelPrefix')]"
+                    },
+                    "vmName": {
+                        "value": "[parameters('vmName')]"
+                    },
+                    "subnetName":{
+                        "value": "[parameters('subnet1Name')]"
+                    },
+                    "storageAccountName":{
+                        "value": "[reference('Storage').outputs.storageAccountName.value]"
+                    }
                 }
             }
         }
-        ],
-        "outputs": {}
-    }
+    ],
+    "outputs": {}
+}

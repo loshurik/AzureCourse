@@ -46,7 +46,7 @@ foreach ($userToAdd in (Get-AzureRmADUser).id) {
     $accessPolicies.Add(@{"tenantId" = $currentTenantId; 
                             "objectId" = $userToAdd;
                              "permissions" =  @{"keys" = @("all"); "secrets" = @("all")};
-                        })
+                        }) | Out-Null
 }
 
 # deploy the keyvault
@@ -70,13 +70,14 @@ if (-not $passwordExists){
         [void](Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name "vmPassword" -SecretValue $securedPassword)
 }
 
-<#
-#region ######## Storage Account deployment ################ 
+#endregion
+
+#region ######## Generic deployment ######################## 
 
 New-AzureRmResourceGroupDeployment -Name ($deploymentName) `
         -ResourceGroupName $resourceGroupName `
-        -TemplateFile (Join-Path (Get-Item $PSScriptRoot).FullName "BrickTemplates\storageAccount.json") `
-        -TemplateParameterFile (Join-Path (Get-Item $PSScriptRoot).FullName "BrickTemplates\storageAccount.parameters.json")
+        -TemplateFile (Join-Path (Get-Item $PSScriptRoot).FullName "genericTemplate.json") `
+        -TemplateParameterFile (Join-Path (Get-Item $PSScriptRoot).FullName "genericTemplate.parameters.json")
 
 $storageAccountName = (Get-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
         -Name ($deploymentName)).Outputs.storageAccountName.value
@@ -97,10 +98,6 @@ $sas = New-AzureStorageContainerSASToken -name $containerName `
 
 #endregion
 
-#region ######## Virtual Machine deployment ################
-
-#endregion
-
 #region ######## DSC Extension #############################
 
 Publish-AzureRmVMDscConfiguration  `
@@ -112,5 +109,5 @@ Publish-AzureRmVMDscConfiguration  `
 
 #endregion
 
-#>
+
 #endregion

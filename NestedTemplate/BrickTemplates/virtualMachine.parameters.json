@@ -6,16 +6,19 @@
             "value": "epamazureuser"
         },
         "adminPassword": {
-            "reference": {
-                "keyVault": {
-                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourcegroup().id,'/providers/Microsoft.KeyVault/vaults/StaticKV')]"
-                },
-                "secretName": "[variables('vmpassword')]"
-            }
-            
+            "value": "sample"
         },            
         "dnsLabelPrefix": {
             "value": "epamazurevm"
+        },
+        "vnetName":{
+            "value": "existingvnet"
+        },
+        "subnetName":{
+            "value": "existingSubnet"
+        },
+        "vmName":{
+            "value": "newVM"
         }
     }
 }

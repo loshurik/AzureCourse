@@ -53,19 +53,38 @@
                 "description": "Subnet name that was deployed somewhere else"
             }
         },
-        "storageAccountName": {
+        "storageAccountType": {
             "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+              "Standard_LRS",
+              "Standard_GRS",
+              "Standard_ZRS",
+              "Premium_LRS"
+            ],
             "metadata": {
-                "description": "Storage account name that was deployed somewhere else"
+              "description": "Storage Account type"
             }
         }
     },
     "variables": {
         "nicName": "[concat(parameters('vmName'),'Nic')]",
         "publicIPAddressName": "[concat(parameters('vmName'),'PublicIp')]",
-        "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), parameters('subnetName'))]"
+        "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), parameters('subnetName'))]",
+        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'standardsa')]"
     },
     "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2016-01-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            },
+            "kind": "Storage",
+            "properties": {}
+        },
         {
             "apiVersion": "2016-03-30",
             "type": "Microsoft.Network/publicIPAddresses",
@@ -148,7 +167,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))).primaryEndpoints.blob]"
+                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob]"
                     }
                 }
             }
