@@ -162,9 +162,6 @@
                     },
                     "subnetName": {
                         "value": "[parameters('subnet1Name')]"
-                    },
-                    "storageAccountName": {
-                        "value": "[reference('Storage').outputs.storageAccountName.value]"
                     }
                 }
             }
