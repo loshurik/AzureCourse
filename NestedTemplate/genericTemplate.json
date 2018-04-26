@@ -136,7 +136,6 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2015-01-01",
             "dependsOn": [
-                "Storage",
                 "Network"
             ],
             "properties": {
@@ -150,14 +149,7 @@
                         "value": "[parameters('adminUsername')]"
                     },
                     "adminPassword": {
-                        "value": {
-                            "reference": {
-                                "keyVault": {
-                                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourcegroup().id,'/providers/Microsoft.KeyVault/vaults/StaticKV')]"
-                                },
-                                "secretName": "vmpassword"
-                            }
-                        }
+                        "value":"qwer1234asdf"
                     },
                     "dnsLabelPrefix": {
                         "value": "[parameters('dnsLabelPrefix')]"
@@ -165,15 +157,23 @@
                     "vmName": {
                         "value": "[parameters('vmName')]"
                     },
-                    "subnetName":{
+                    "vnetName":{
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "subnetName": {
                         "value": "[parameters('subnet1Name')]"
                     },
-                    "storageAccountName":{
+                    "storageAccountName": {
                         "value": "[reference('Storage').outputs.storageAccountName.value]"
                     }
                 }
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "testkv": {
+            "type": "string",
+            "value": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourcegroup().name,'/providers/Microsoft.KeyVault/vaults/StaticKV')]"
+        }
+    }
 }

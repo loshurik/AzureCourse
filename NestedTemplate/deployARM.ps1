@@ -9,11 +9,12 @@ param(
 #region ######## Variables ################################# 
 
 $subscriptionName = "Free Trial"
-$resourceGroupName = "HomeTask48"
+$resourceGroupName = "HomeTask41"
 $deploymentName = "HomeTask4Deployment"
 $location = "South Central US"
-$dscContainerName = "DSCExtension"
+$dscContainerName = "dsc"
 $keyVaultName = "StaticKV"
+$policyName = "DSCpolicy"
 
 #endregion
 
@@ -35,7 +36,7 @@ Select-AzureRmSubscription -SubscriptionName $subscriptionName
 if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyContinue)) {
     New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
 }
-
+<#
 #region ######## Key Vault deployment ######################
 
 $currentTenantId = (Get-AzureRmContext).Tenant.Id
@@ -60,10 +61,10 @@ New-AzureRmResourceGroupDeployment -Name $deploymentName `
 
 # take care of password
 do {
-        $password = (Get-Random -Count 10 -InputObject ([char[]]"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")) -join ''
+        $password = (Get-Random -Count 15 -InputObject ([char[]]"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-+")) -join ''
 }
 # make sure the password has at least 1 digit, capital and small letter
-until (($password -match "\d") -and ($password -cmatch "[A-Z]") -and ($password -cmatch "[a-z]")) 
+until (($password -match "\d") -and ($password -cmatch "[A-Z]") -and ($password -cmatch "[a-z]"-and ($password -cmatch "[+-]"))) 
 $securedPassword = ConvertTo-SecureString -String $password -AsPlainText -Force
 $passwordExists = Get-AzureKeyVaultSecret -VaultName $KeyVaultName -name "vmPassword" -ErrorAction SilentlyContinue
 if (-not $passwordExists){
@@ -71,6 +72,7 @@ if (-not $passwordExists){
 }
 
 #endregion
+#>
 
 #region ######## Generic deployment ######################## 
 
@@ -79,20 +81,26 @@ New-AzureRmResourceGroupDeployment -Name ($deploymentName) `
         -TemplateFile (Join-Path (Get-Item $PSScriptRoot).FullName "genericTemplate.json") `
         -TemplateParameterFile (Join-Path (Get-Item $PSScriptRoot).FullName "genericTemplate.parameters.json")
 
-$storageAccountName = (Get-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
-        -Name ($deploymentName)).Outputs.storageAccountName.value
+$storageAccountName = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName).StorageAccountName
 $accountKeys = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName `
         -Name $storageAccountName  
 $storageContext = New-AzureStorageContext -StorageAccountName $storageAccountName `
         -StorageAccountKey $accountKeys[0].Value 
-$container = New-AzureStorageContainer -Context $storageContext -Name $dscContainerName
-$policy = New-AzureStorageContainerStoredAccessPolicy -Container $dscContainerName `
+
+$containerExists = Get-AzureStorageContainer -Context $storageContext -Name $dscContainerName
+if (-not $containerExists) {
+        $container = New-AzureStorageContainer -Context $storageContext -Name $dscContainerName
+}
+$policyExists = Get-AzureStorageContainerStoredAccessPolicy -Container $dscContainerName -Context $storageContext
+if (-not $policyExists) {
+        $policy = New-AzureStorageContainerStoredAccessPolicy -Container $dscContainerName `
         -Policy $policyName `
         -Context $storageContext `
         -StartTime $(Get-Date).ToUniversalTime().AddMinutes(-5) `
         -ExpiryTime $(Get-Date).ToUniversalTime().AddYears(10) `
         -Permission rwld
-$sas = New-AzureStorageContainerSASToken -name $containerName `
+}
+$sas = New-AzureStorageContainerSASToken -name $dscContainerName `
         -Policy $policyName `
         -Context $storageContext
 
@@ -104,7 +112,8 @@ Publish-AzureRmVMDscConfiguration  `
 -ConfigurationPath (Join-Path (Get-Item $PSScriptRoot).Parent.FullName "DSCExtension\Set-IIS.ps1") `
 -ResourceGroupName $resourceGroupName `
 -StorageAccountName $storageAccountName `
--ContainerName $dscContainerName
+-ContainerName $dscContainerName `
+-Force
 
 
 #endregion
