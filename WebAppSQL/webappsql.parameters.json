@@ -1,0 +1,18 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sqlAdministratorLogin": {
+      "value": "epamazuresql"
+    },
+    "sqlAdministratorLoginPassword": {
+      "reference": {
+           "keyVault": {
+                     "id": "/subscriptions/02a3d8c4-42fd-4174-bcce-86b8fbcc63a3/resourceGroups/StaticGroup/providers/Microsoft.KeyVault/vaults/staticKV"
+                 },
+                 "secretName": "sqlPassword"
+           }
+      }
+      
+  }
+}
