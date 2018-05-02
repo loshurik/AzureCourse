@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "windowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2016-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "2016-Nano-Server",
+        "2016-Datacenter-with-Containers",
+        "2016-Datacenter"
+      ],
+      "metadata": {
+        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'sawinvm')]",
+    "adminPasswordref": {
+      "reference": {
+        "keyVault": {
+          "id": "[concat(resourceGroup().id,'/providers/Microsoft.KeyVault/vaults/','statickv')]"
+        },
+        "secretName": "vmPassword"
+      }
+    },
+    "adminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "[concat(resourceGroup().id,'/providers/Microsoft.KeyVault/vaults/','statickv')]"
+        },
+        "secretName": "vmPassword"
+      }
+    },
+    "kvpath":"[concat(resourceGroup().id,'/providers/Microsoft.KeyVault/vaults/','statickv')]"
+  },
+  "resources": [],
+  "outputs": {
+    "storage":{
+      "type": "string",
+      "value": "[variables('storageAccountName')]"
+    },
+    "path":{
+      "type": "string",
+      "value": "[variables('kvpath')]"
+    },
+    "pass":{
+      "type": "object",
+      "value": "[variables('adminPassword')]"
+    }
+  }
+}

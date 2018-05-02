@@ -12,8 +12,9 @@ $subscriptionName = "Free Trial"
 $resourceGroupName = "HomeTask41"
 $deploymentName = "HomeTask4Deployment"
 $location = "South Central US"
-$dscContainerName = "dsc"
+$dscContainerName = "windows-powershell-dsc"
 $keyVaultName = "StaticKV"
+$keyVaultResourceGroup = "StaticGroup"
 $policyName = "DSCpolicy"
 
 #endregion
@@ -36,7 +37,7 @@ Select-AzureRmSubscription -SubscriptionName $subscriptionName
 if (-not (Get-AzureRmResourceGroup $resourceGroupName -ErrorAction SilentlyContinue)) {
     New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
 }
-<#
+
 #region ######## Key Vault deployment ######################
 
 $currentTenantId = (Get-AzureRmContext).Tenant.Id
@@ -72,14 +73,21 @@ if (-not $passwordExists){
 }
 
 #endregion
-#>
+
+
+New-AzureRmResourceGroupDeployment -Name ($deploymentName) `
+        -ResourceGroupName $resourceGroupName `
+        -TemplateFile (Join-Path (Get-Item $PSScriptRoot).FullName "BrickTemplates\vm.json") `
+        -TemplateParameterFile (Join-Path (Get-Item $PSScriptRoot).FullName "BrickTemplates\vm.parameters.json")
+
 
 #region ######## Generic deployment ######################## 
-
+<#
 New-AzureRmResourceGroupDeployment -Name ($deploymentName) `
         -ResourceGroupName $resourceGroupName `
         -TemplateFile (Join-Path (Get-Item $PSScriptRoot).FullName "genericTemplate.json") `
         -TemplateParameterFile (Join-Path (Get-Item $PSScriptRoot).FullName "genericTemplate.parameters.json")
+#>
 
 $storageAccountName = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName).StorageAccountName
 $accountKeys = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName `
@@ -87,7 +95,7 @@ $accountKeys = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupNam
 $storageContext = New-AzureStorageContext -StorageAccountName $storageAccountName `
         -StorageAccountKey $accountKeys[0].Value 
 
-$containerExists = Get-AzureStorageContainer -Context $storageContext -Name $dscContainerName
+$containerExists = Get-AzureStorageContainer -Context $storageContext -Name $dscContainerName -ErrorAction SilentlyContinue
 if (-not $containerExists) {
         $container = New-AzureStorageContainer -Context $storageContext -Name $dscContainerName
 }
@@ -115,7 +123,13 @@ Publish-AzureRmVMDscConfiguration  `
 -ContainerName $dscContainerName `
 -Force
 
-
+Set-AzureRmVmDscExtension -Version 2.72 `
+        -ResourceGroupName $resourceGroupName `
+        -VMName (Get-AzureRmvm -ResourceGroupName $resourceGroupName).Name `
+        -ArchiveStorageAccountName (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName).StorageAccountName `
+        -ArchiveBlobName "Set-IIS.ps1.zip" `
+        -AutoUpdate:$true `
+        -ConfigurationName "CustomIIS"
 #endregion
 
 
